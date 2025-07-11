@@ -36,14 +36,14 @@ class _zeeAssistantState extends State<zeeAssistant> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: ThemeMode.system, // Follows system theme
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: ThemeMode.system, // Follows system theme
       home: ChangeNotifierProvider.value(
         value: chatProvider,
         child: Chatscreen(),
       ),
-      debugShowCheckedModeBanner: false,
-    );
+        debugShowCheckedModeBanner: false,
+      );
   }
 }

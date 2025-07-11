@@ -5,6 +5,7 @@ import 'package:newvirus/models/Message.dart';
 import 'package:newvirus/providers/ChatProvider.dart';
 import 'package:newvirus/utils/colors.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Assistantmessage extends StatelessWidget {
   const Assistantmessage({super.key, required this.message});
@@ -41,23 +42,32 @@ class Assistantmessage extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: MarkdownBody(
-                        data: message.content,
-                        styleSheet: MarkdownStyleSheet(
-                          p: TextStyle(
-                            fontSize: 16,
-                            color: provider.brightness == Brightness.light
-                                ? Colors.black
-                                : Colors.white,
-                          ),
-                          strong: const TextStyle(fontWeight: FontWeight.bold),
-                          listBullet: TextStyle(
-                            fontSize: 16,
-                            color: provider.brightness == Brightness.light
-                                ? Colors.black
-                                : Colors.white,
-                          ),
-                        ),
-                      ),
+  data: message.content,
+  styleSheet: MarkdownStyleSheet(
+    p: TextStyle(
+      fontSize: 16,
+      color: provider.brightness == Brightness.light
+          ? Colors.black
+          : Colors.white,
+    ),
+    strong: const TextStyle(fontWeight: FontWeight.bold),
+    listBullet: TextStyle(
+      fontSize: 16,
+      color: provider.brightness == Brightness.light
+          ? Colors.black
+          : Colors.white,
+    ),
+  ),
+  onTapLink: (text, href, title) async {
+    if (href != null && await canLaunchUrl(Uri.parse(href))) {
+      await launchUrl(Uri.parse(href), mode: LaunchMode.externalApplication);
+    }
+  },
+  builders: {
+   
+  },
+)
+
                     ),
                   ),
                 ),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:newvirus/models/Message.dart';
 import 'package:newvirus/utils/colors.dart';
 import 'package:newvirus/utils/texts.dart';
@@ -16,8 +17,10 @@ class ChatProvider extends ChangeNotifier{
   TextEditingController controller = TextEditingController();
   ScrollController scrollController = ScrollController();
   bool isLoading = false;
+  bool isEditing = false;
   String error = "";
   String _response = "";
+  int ?indexOfEditingMessage;
   final List<Message> messages = [Message(role: Role.system, content: Texts.systemmessage),];
  ConnectivityResult _connectivityStatus = ConnectivityResult.none;
 StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
@@ -75,7 +78,7 @@ try {
           print("API Error - Status Code: ${response.statusCode}");
           print("API Error - Response: ${response.body}");
           _response = 'Error: ${response.statusCode} - ${response.body}';
-          _showConnectionToast(context,"something wrong happened , please try again.");
+          showConnectionToast(context,"something wrong happened , please try again.");
           
       
       }
@@ -83,7 +86,7 @@ try {
       messages.removeLast();
         print("Exception occurred: $e");
         _response = 'Exception: $e';
-        _showConnectionToast(context,"Exception: $e");
+        showConnectionToast(context,"Exception: $e");
    
     }
 
@@ -105,11 +108,27 @@ try {
     void sendMessage(BuildContext context){
       if(!isOnline) 
       {
-      _showConnectionToast(context,"Please check your internet connection");
+      showConnectionToast(context,"Please check your internet connection");
       return;
       }
   
     if(controller.text.trim().isEmpty) return;
+    if(isEditing){
+        isEditing=false;
+        notifyListeners();
+      while(messages.length>indexOfEditingMessage!){
+        messages.removeLast();
+      }
+      messages.add(Message(role: Role.user, content: controller.text.trim()));
+      controller.clear();
+      controller.text = "";
+      FocusScope.of(context).unfocus();
+      notifyListeners();
+      getResponse(context);
+
+      return;
+    
+    }
     messages.add(Message(role: Role.user, content: controller.text.trim()));
     controller.clear();
     controller.text = "";
@@ -141,7 +160,7 @@ void disposeConnectionListener() {
   _connectivitySubscription?.cancel();
 }
 
-void _showConnectionToast(BuildContext context,String message) {
+void showConnectionToast(BuildContext context,String message) {
   final overlay = Overlay.of(context);
   final overlayEntry = OverlayEntry(
     builder: (context) => Positioned(
@@ -186,6 +205,17 @@ void _showConnectionToast(BuildContext context,String message) {
   overlay.insert(overlayEntry);
   Timer(Duration(seconds: 3), () => overlayEntry.remove());
 }
+ void Copymessage(BuildContext context,Message message) {
+     Clipboard.setData(ClipboardData(text: message.content));
+    Navigator.of(context).pop();
+    FocusScope.of(context).unfocus();
+  }
+   void Editmessage(BuildContext context,Message message) {
+    indexOfEditingMessage=messages.indexOf(message);
+    isEditing=true;
+        Navigator.of(context).pop();
+    controller.text = message.content;
+  }
 
 }
 

@@ -17,7 +17,7 @@ PreferredSizeWidget appBar(BuildContext context) {
     ),
     titleSpacing: 2,
     title: const Text(
-      Texts.appname,
+      "zee ASSISTANT",
       style: TextStyle(
           color: AppColors.iconColor, fontSize: 20, fontWeight: FontWeight.bold),
     ),

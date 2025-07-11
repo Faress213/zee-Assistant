@@ -1,9 +1,12 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:newvirus/main.dart';
 import 'package:newvirus/models/Message.dart';
 import 'package:newvirus/providers/ChatProvider.dart';
 import 'package:newvirus/utils/colors.dart';
+import 'package:newvirus/widgets/messagecenter.dart';
 import 'package:provider/provider.dart';
 
 class Usermessage extends StatelessWidget {
@@ -12,7 +15,7 @@ class Usermessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var provider=context.watch<ChatProvider>();
+    var provider = context.watch<ChatProvider>();
     return Column(
       children: [
         Row(
@@ -24,21 +27,47 @@ class Usermessage extends StatelessWidget {
                 ConstrainedBox(
                   constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.6),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                   
-                      color: provider.brightness == Brightness.light ? AppColors.messagebubblecolorLIGHTMODE : AppColors.messagebubblecolorDARKMODE, 
-                    ),
-                    
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        message.content,
-                        style:  TextStyle(
-                            color:provider.brightness == Brightness.light ? Colors.black : Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.normal),
+                  child: GestureDetector(
+                    onLongPress: () {
+                      Navigator.of(context).push(
+                        PageRouteBuilder(
+                          opaque: false,
+                          barrierDismissible: true,
+                          transitionDuration: Duration(milliseconds: 300),
+                          reverseTransitionDuration: Duration(milliseconds: 300),
+                          pageBuilder: (context, animation, secondaryAnimation) {
+                            return MessageCenterAnimation(
+                              message: message,
+                              provider: provider,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    child: Hero(
+                      tag: 'message-${message.content.hashCode}',
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: provider.brightness == Brightness.light
+                              ? AppColors.messagebubblecolorLIGHTMODE
+                              : AppColors.messagebubblecolorDARKMODE,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: Text(
+                              message.content,
+                              style: TextStyle(
+                                  color: provider.brightness == Brightness.light
+                                      ? Colors.black
+                                      : Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.normal),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -46,7 +75,7 @@ class Usermessage extends StatelessWidget {
                 const SizedBox(
                   width: 5,
                 ),
-               const  ClipRRect(
+                const ClipRRect(
                   child: Icon(
                     Icons.person,
                     color: AppColors.iconColor,
@@ -65,3 +94,4 @@ class Usermessage extends StatelessWidget {
     );
   }
 }
+

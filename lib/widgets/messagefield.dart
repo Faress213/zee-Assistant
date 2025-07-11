@@ -64,10 +64,10 @@ class Messagefield extends StatelessWidget {
                   onTap: () {
                     context.read<ChatProvider>().sendMessage(context);
                   },
-                  child: CircleAvatar(
+                  child: const CircleAvatar(
                     radius: 18,
                     backgroundColor: AppColors.iconColor,
-                    child: const Icon(Icons.send, size: 18, color: Colors.white),
+                    child:  Icon(Icons.send, size: 18, color: Colors.white),
                   ),
                 ),
         ],

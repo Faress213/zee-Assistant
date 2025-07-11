@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:newvirus/models/Message.dart';
 import 'package:newvirus/providers/ChatProvider.dart';
-import 'package:newvirus/utils/colors.dart';
-import 'package:newvirus/utils/texts.dart';
-import 'package:newvirus/widgets/Assistantmessage.dart';
 import 'package:newvirus/widgets/Chatmessage.dart';
-import 'package:newvirus/widgets/Usermessage.dart';
 import 'package:newvirus/widgets/appAppBar.dart';
 import 'package:newvirus/widgets/messagefield.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +17,7 @@ class Chatscreen extends StatelessWidget {
     });
     
     List<Message> messages = context.watch<ChatProvider>().messages;
-
+    final provider = context.watch<ChatProvider>();
       return Scaffold(
         backgroundColor: context.watch<ChatProvider>().brightness == Brightness.light ? Colors.white : Colors.black,
     appBar: appBar(context),
@@ -46,9 +42,29 @@ class Chatscreen extends StatelessWidget {
                           ),
                         )
                       : Chatmessage(messages: messages),
+                  if (provider.isEditing)
+                    Container(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              context.watch<ChatProvider>().controller.text,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Spacer(),
+                          IconButton(onPressed: (){
+                            provider.isEditing = false;
+                            provider.notifyListeners();
+                          }, icon: Icon(Icons.close))
+                        ],
+                      ),
+                    ),
+                 const SizedBox(height: 10,),
                      const Messagefield()
 
-                ],
+                ]
                 
               ),
             ),
