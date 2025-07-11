@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>525324524046-a3bs8p1heodmea3270le2l6mvb3ifacf.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.525324524046-a3bs8p1heodmea3270le2l6mvb3ifacf</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBR5W-h2Zz0whu3QNpPtWomTswpkRlXpGI</string>
+	<key>GCM_SENDER_ID</key>
+	<string>525324524046</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.newvirus.RunnerTests</string>
+	<key>PROJECT_ID</key>
+	<string>chatapp-62405</string>
+	<key>STORAGE_BUCKET</key>
+	<string>chatapp-62405.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:525324524046:ios:06c1f94663d75dd7453a5f</string>
+</dict>
+</plist>

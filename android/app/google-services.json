@@ -1,0 +1,106 @@
+{
+  "project_info": {
+    "project_number": "75718793625",
+    "firebase_url": "https://sunnan-36ace-default-rtdb.firebaseio.com",
+    "project_id": "sunnan-36ace",
+    "storage_bucket": "sunnan-36ace.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75718793625:android:4ab316fa0ce8a5cc7fdb08",
+        "android_client_info": {
+          "package_name": "com.example.hadith2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHe6PdXAMEjOyGSXwj0NNKei0J1lTIK5Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75718793625:android:7a39a19c1b025c0c7fdb08",
+        "android_client_info": {
+          "package_name": "com.example.newvirus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHe6PdXAMEjOyGSXwj0NNKei0J1lTIK5Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75718793625:android:97998a240c1fb6207fdb08",
+        "android_client_info": {
+          "package_name": "com.example.storeapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHe6PdXAMEjOyGSXwj0NNKei0J1lTIK5Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75718793625:android:1780a737c36daf7e7fdb08",
+        "android_client_info": {
+          "package_name": "com.example.test"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHe6PdXAMEjOyGSXwj0NNKei0J1lTIK5Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75718793625:android:ad41fabef804d4367fdb08",
+        "android_client_info": {
+          "package_name": "com.example.virus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHe6PdXAMEjOyGSXwj0NNKei0J1lTIK5Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
