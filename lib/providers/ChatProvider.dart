@@ -1,52 +1,116 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:newvirus/models/Message.dart';
 import 'package:newvirus/utils/colors.dart';
 import 'package:newvirus/utils/texts.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
-class ChatProvider extends ChangeNotifier{
-  
-  Brightness brightness = Brightness.light; // Default value
-  
-  Color get messagebubblecolor => brightness == Brightness.light ? AppColors.messagebubblecolorLIGHTMODE : AppColors.messagebubblecolorDARKMODE;
-  TextEditingController controller = TextEditingController();
-  ScrollController scrollController = ScrollController();
-  bool isLoading = false;
-  bool isEditing = false;
-  String error = "";
+class ChatProvider extends ChangeNotifier {
+  // Private fields
+  Brightness _brightness = Brightness.light;
+  bool _isLoading = false;
+  bool _isEditing = false;
+  String _error = "";
   String _response = "";
-  int ?indexOfEditingMessage;
-  final List<Message> messages = [Message(role: Role.system, content: Texts.systemmessage),];
- ConnectivityResult _connectivityStatus = ConnectivityResult.none;
-StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  int? _indexOfEditingMessage;
+  ConnectivityResult _connectivityStatus = ConnectivityResult.none;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
-bool get isOnline => _connectivityStatus != ConnectivityResult.none;
+  // Controllers
+  final TextEditingController controller = TextEditingController();
+  final ScrollController scrollController = ScrollController();
 
-  void updateBrightness(Brightness newBrightness) {
-    if (brightness != newBrightness) {
-      brightness = newBrightness;
-      notifyListeners();
-    }
-  }
+  // Messages list
+  final List<Message> messages = [
+    Message(role: Role.system, content: Texts.systemmessage),
+  ];
 
-  // Initialize with system brightness
-  void initializeSystemBrightness(BuildContext context) {
-    final systemBrightness = MediaQuery.of(context).platformBrightness;
-    updateBrightness(systemBrightness);
-  }
+  // Getters
+  Brightness get brightness => _brightness;
+  bool get isLoading => _isLoading;
+  bool get isEditing => _isEditing;
+  String get error => _error;
+  int? get indexOfEditingMessage => _indexOfEditingMessage;
+  bool get isOnline => _connectivityStatus != ConnectivityResult.none;
 
-  Future<void> getResponse(BuildContext context) async {
-    isLoading = true;
+  Color get messagebubblecolor => _brightness == Brightness.light
+      ? AppColors.messagebubblecolorLIGHTMODE
+      : AppColors.messagebubblecolorDARKMODE;
+
+  // Constants
+  static const String _brightnessKey = 'brightness_mode';
+
+  
+
+  // Brightness Management with SharedPreferences
+  void setBrightness(Brightness value) {
+    _brightness = value;
     notifyListeners();
+  }
+  void setEditing(bool value) {
+    _isEditing = value;
+    notifyListeners();
+  }
+  
+
+  
+  // Message Management
+  Future<void> sendMessage(BuildContext context) async {
+    if (!isOnline) {
+      _showConnectionToast(context, "Please check your internet connection");
+      return;
+    }
+
+    if (controller.text.trim().isEmpty) return;
+
+    if (_isEditing) {
+      await _handleEditMessage(context);
+      return;
+    }
+
+    await _handleNewMessage(context);
+  }
+
+  Future<void> _handleEditMessage(BuildContext context) async {
+    _isEditing = false;
+    notifyListeners();
+
+    // Remove messages after the editing index
+    while (messages.length > _indexOfEditingMessage!) {
+      messages.removeLast();
+    }
+
+    messages.add(Message(role: Role.user, content: controller.text.trim()));
+    _clearController(context);
+    await _getResponse(context);
+  }
+
+  Future<void> _handleNewMessage(BuildContext context) async {
+    messages.add(Message(role: Role.user, content: controller.text.trim()));
+    _clearController(context);
+    await _scrollToBottom();
+    await _getResponse(context);
+  }
+
+  void _clearController(BuildContext context) {
+    controller.clear();
+    FocusScope.of(context).unfocus();
+    notifyListeners();
+  }
+
+  // API Communication
+  Future<void> _getResponse(BuildContext context) async {
+    _setLoading(true);
     
-    print("Sending API request with ${messages.length} messages");
+    debugPrint("Sending API request with ${messages.length} messages");
     
-try {
+    try {
       final response = await http.post(
         Uri.parse(Texts.endpoint),
         headers: {
@@ -54,7 +118,7 @@ try {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          "model": "llama-3.3-70b-versatile", // or 
+          "model": "llama-3.3-70b-versatile",
           "messages": messages.map((message) => {
             "role": message.role.name,
             "content": message.content,
@@ -64,158 +128,143 @@ try {
         }),
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
-        final reply = data['choices'][0]['message']['content'];
-       
-          _response = reply.trim();
-          messages.add(Message(role: Role.assistant, content: _response));
-          print("API Success - Response: $_response");
-
-        
-      } else {
-        messages.removeLast();
-          print("API Error - Status Code: ${response.statusCode}");
-          print("API Error - Response: ${response.body}");
-          _response = 'Error: ${response.statusCode} - ${response.body}';
-          showConnectionToast(context,"something wrong happened , please try again.");
-          
-      
-      }
+      await _handleApiResponse(response, context);
     } catch (e) {
+      await _handleApiError(e, context);
+    }
+
+    _setLoading(false);
+    await _scrollToBottom();
+  }
+
+  Future<void> _handleApiResponse(http.Response response, BuildContext context) async {
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final reply = data['choices'][0]['message']['content'];
+      
+      _response = reply.trim();
+      messages.add(Message(role: Role.assistant, content: _response));
+      debugPrint("API Success - Response: $_response");
+    } else {
       messages.removeLast();
-        print("Exception occurred: $e");
-        _response = 'Exception: $e';
-        showConnectionToast(context,"Exception: $e");
-   
+      debugPrint("API Error - Status Code: ${response.statusCode}");
+      debugPrint("API Error - Response: ${response.body}");
+      
+      _response = 'Error: ${response.statusCode} - ${response.body}';
+      _showConnectionToast(context, "Something went wrong, please try again.");
     }
-
-   isLoading=false;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (scrollController.hasClients) {
-      scrollController.animateTo(
-        scrollController.position.maxScrollExtent,
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  });
-   notifyListeners();
- 
   }
 
-
-    void sendMessage(BuildContext context){
-      if(!isOnline) 
-      {
-      showConnectionToast(context,"Please check your internet connection");
-      return;
-      }
-  
-    if(controller.text.trim().isEmpty) return;
-    if(isEditing){
-        isEditing=false;
-        notifyListeners();
-      while(messages.length>indexOfEditingMessage!){
-        messages.removeLast();
-      }
-      messages.add(Message(role: Role.user, content: controller.text.trim()));
-      controller.clear();
-      controller.text = "";
-      FocusScope.of(context).unfocus();
-      notifyListeners();
-      getResponse(context);
-
-      return;
+  Future<void> _handleApiError(dynamic error, BuildContext context) async {
+    messages.removeLast();
+    debugPrint("Exception occurred: $error");
     
-    }
-    messages.add(Message(role: Role.user, content: controller.text.trim()));
-    controller.clear();
-    controller.text = "";
-    FocusScope.of(context).unfocus();
-    notifyListeners();
-   WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (scrollController.hasClients) {
-      scrollController.animateTo(
-        scrollController.position.maxScrollExtent,
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  });
-  getResponse(context);
+    _response = 'Exception: $error';
+    _showConnectionToast(context, "Exception: $error");
   }
 
-  void checkChatStatus(BuildContext context){
-    _connectivitySubscription = Connectivity()
-      .onConnectivityChanged
-      .listen((List<ConnectivityResult> results) {
-    _connectivityStatus = results.isNotEmpty ? results.first : ConnectivityResult.none;
+  void _setLoading(bool loading) {
+    _isLoading = loading;
     notifyListeners();
-    print("📶 Connection changed: $_connectivityStatus");
-  });
-}
+  }
 
-void disposeConnectionListener() {
-  _connectivitySubscription?.cancel();
-}
+  Future<void> _scrollToBottom() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
 
-void showConnectionToast(BuildContext context,String message) {
-  final overlay = Overlay.of(context);
-  final overlayEntry = OverlayEntry(
-    builder: (context) => Positioned(
-      top:  100,
-      left: 20,
-      right: 20,
-     
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.red.shade400, Colors.red.shade600],
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 10,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.wifi_off, color: Colors.white),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  message,
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
+  // Connectivity Management
+  void initializeConnectivity() {
+    _connectivitySubscription = Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      _connectivityStatus = results.isNotEmpty ? results.first : ConnectivityResult.none;
+      notifyListeners();
+      debugPrint("📶 Connection changed: $_connectivityStatus");
+    });
+  }
 
-  overlay.insert(overlayEntry);
-  Timer(Duration(seconds: 3), () => overlayEntry.remove());
-}
- void Copymessage(BuildContext context,Message message) {
-     Clipboard.setData(ClipboardData(text: message.content));
+  void disposeConnectivity() {
+    _connectivitySubscription?.cancel();
+  }
+
+  // Message Actions
+  void copyMessage(BuildContext context, Message message) {
+    Clipboard.setData(ClipboardData(text: message.content));
     Navigator.of(context).pop();
     FocusScope.of(context).unfocus();
   }
-   void Editmessage(BuildContext context,Message message) {
-    indexOfEditingMessage=messages.indexOf(message);
-    isEditing=true;
-        Navigator.of(context).pop();
+
+  void editMessage(BuildContext context, Message message) {
+    _indexOfEditingMessage = messages.indexOf(message);
+    _isEditing = true;
+    Navigator.of(context).pop();
     controller.text = message.content;
+    notifyListeners();
   }
 
+  // UI Helpers
+  void _showConnectionToast(BuildContext context, String message) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 100,
+        left: 20,
+        right: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.red.shade400, Colors.red.shade600],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.wifi_off, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+    Timer(const Duration(seconds: 3), () => overlayEntry.remove());
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    scrollController.dispose();
+    disposeConnectivity();
+    super.dispose();
+  }
 }
 

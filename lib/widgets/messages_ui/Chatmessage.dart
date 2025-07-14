@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:newvirus/models/Message.dart';
 import 'package:newvirus/providers/ChatProvider.dart';
-import 'package:newvirus/widgets/Assistantmessage.dart';
-import 'package:newvirus/widgets/Assistantmessageloading.dart';
-import 'package:newvirus/widgets/Usermessage.dart';
+import 'package:newvirus/widgets/messages_ui/Assistantmessage.dart';
+import 'package:newvirus/widgets/moving_messages/LoadingMessage.dart';
+import 'package:newvirus/widgets/messages_ui/Usermessage.dart';
 import 'package:provider/provider.dart';
 
 class Chatmessage extends StatefulWidget {

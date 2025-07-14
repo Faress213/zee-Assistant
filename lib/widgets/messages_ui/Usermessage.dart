@@ -6,7 +6,7 @@ import 'package:newvirus/main.dart';
 import 'package:newvirus/models/Message.dart';
 import 'package:newvirus/providers/ChatProvider.dart';
 import 'package:newvirus/utils/colors.dart';
-import 'package:newvirus/widgets/messagecenter.dart';
+import 'package:newvirus/widgets/moving_messages/messagecenter.dart';
 import 'package:provider/provider.dart';
 
 class Usermessage extends StatelessWidget {
@@ -33,10 +33,11 @@ class Usermessage extends StatelessWidget {
                         PageRouteBuilder(
                           opaque: false,
                           barrierDismissible: true,
-                          transitionDuration: Duration(milliseconds: 300),
-                          reverseTransitionDuration: Duration(milliseconds: 300),
+                          transitionDuration: const Duration(milliseconds: 300),
+                          reverseTransitionDuration: const Duration(milliseconds: 300),
                           pageBuilder: (context, animation, secondaryAnimation) {
                             return MessageCenterAnimation(
+                              maxWidth: .7,
                               message: message,
                               provider: provider,
                             );

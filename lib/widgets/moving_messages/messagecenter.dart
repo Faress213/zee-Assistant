@@ -11,11 +11,14 @@ import 'package:newvirus/widgets/actionbutton.dart';
 class MessageCenterAnimation extends StatelessWidget {
   final Message message;
   final ChatProvider provider;
+  final double maxWidth;
+  final double ?maxHeight;
 
   const MessageCenterAnimation({
     Key? key,
+   
     required this.message,
-    required this.provider,
+    required this.provider, required this.maxWidth, this.maxHeight,
   }) : super(key: key);
 
   @override
@@ -57,7 +60,7 @@ class MessageCenterAnimation extends StatelessWidget {
                       color: Colors.transparent,
                       child: Container(
                         constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.7,
+                          maxWidth: MediaQuery.of(context).size.width * maxWidth,
                         ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
@@ -90,7 +93,7 @@ class MessageCenterAnimation extends StatelessWidget {
                         label: 'Copy',
                         provider: provider,
                         onTap: () {
-                         provider.Copymessage(context,message);
+                         provider.copyMessage(context, message);
                         },
                       ),
                       const SizedBox(height: 13),
@@ -101,7 +104,7 @@ class MessageCenterAnimation extends StatelessWidget {
                         provider: provider,
                         onTap: () {
 
-                           provider.Editmessage(context,message);
+                           provider.editMessage(context, message);
                         },
                       ),
                     ],

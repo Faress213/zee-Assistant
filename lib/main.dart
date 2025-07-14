@@ -2,48 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:newvirus/providers/ChatProvider.dart';
 import 'package:newvirus/screens/ChatScreen.dart';
 import 'package:provider/provider.dart';
+
 void main() {
-  runApp(const zeeAssistant());
+  WidgetsFlutterBinding.ensureInitialized();
+  // Get initial brightness BEFORE runApp
+  final systemBrightness = WidgetsBinding.instance.window.platformBrightness;
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) {
+        final provider = ChatProvider();
+        provider.setBrightness(systemBrightness); // Immediate set
+        provider.initializeConnectivity();
+        return provider;
+      },
+      child: const ZeeAssistant(),
+    ),
+  );
 }
 
-class zeeAssistant extends StatefulWidget {
-  const zeeAssistant({super.key});
-
-  @override
-  State<zeeAssistant> createState() => _zeeAssistantState();
-}
-
-class _zeeAssistantState extends State<zeeAssistant> {
-  late ChatProvider chatProvider;
-
-  @override
-  void initState() {
-    super.initState();
-    chatProvider = ChatProvider();
-    // Start monitoring internet connectivity when app starts
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      chatProvider.checkChatStatus(context);
-    });
-  }
-
-  @override
-  void dispose() {
-    // Stop monitoring when app closes
-    chatProvider.disposeConnectionListener();
-    super.dispose();
-  }
+class ZeeAssistant extends StatelessWidget {
+  const ZeeAssistant({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: ThemeData.light(),
-        darkTheme: ThemeData.dark(),
-        themeMode: ThemeMode.system, // Follows system theme
-      home: ChangeNotifierProvider.value(
-        value: chatProvider,
-        child: Chatscreen(),
-      ),
-        debugShowCheckedModeBanner: false,
-      );
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: ThemeMode.system, // Follows system theme
+      debugShowCheckedModeBanner: false,
+      home: const Chatscreen(),
+    );
   }
 }
