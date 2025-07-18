@@ -26,7 +26,7 @@ A modern, beautiful Flutter chat application powered by AI that provides intelli
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/newvirus.git
+   git clone https://github.com/Faress213/zee-Assistant.git
    cd newvirus
    ```
 
